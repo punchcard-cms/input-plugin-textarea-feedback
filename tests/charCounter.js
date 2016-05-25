@@ -1,25 +1,34 @@
 import test from 'ava';
+import charCounter from '../lib/charCounter.js';
 
-const jsdom = require('jsdom');
+const mockMsg = {
+  maxLength: 6,
+  value: 'test',
+};
 
-let window;
+const mockCharRemain = {
+  innerHTML: '',
+};
 
-test.serial.cb('PAGE REQUEST', t => {
-  jsdom.env(
-    '<div class="input-feedback"><label for="feedback-form">Form Field</label> <textarea class="input-plugin-textarea" id="feedback-form" maxlength="200" minlength="50" name="feedback-form" />type things</textarea><div class="textarea-feedback"><span class="feedback-number"></span> characters remaining</div></div>',
-    ['http://code.jquery.com/jquery.js'],
-    (err) => {
-      console.log(err);
-      console.log('test test', window.$('.input-plugin-textarea').text());
-      t.end();
+const mockPage = {
+  querySelector(selector) {
+    if (selector === '.input-plugin-textarea') {
+      return mockMsg;
     }
-  );
-});
+    else if (selector === '.feedback-number') {
+      return mockCharRemain;
+    }
 
-test.serial('PAGE LOADED', t => {
-  t.plan(1);
+    return null;
+  },
+};
 
-  const attr = window.document.body.getAttribute('input-plugin-textarea');
+const mockChild = {
+  parent: mockPage,
+};
 
-  t.truthy(attr.length > 0, attr);
+test('Character Count is updated when text is added', t => {
+  charCounter(mockChild);
+  mockMsg.onkeydown();
+  t.is(mockCharRemain.innerHTML, 2);
 });
